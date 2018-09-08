@@ -1,7 +1,7 @@
 from app import db
 
 
-class Survey:
+class JSONSurvey:
     def __init__(self, json):
         self._json = json
         self._columns = self._get_columns(json)
@@ -51,3 +51,29 @@ class Survey:
     @property
     def columns(self):
         return self._columns
+
+
+class ResultMixin:
+    id = db.Column(db.Integer, primary_key=True)
+    signature = db.Column(db.String, unique=True)
+
+    def __repr__(self):
+        return '<{} {}>'.format(self.__class__.__name__, self.id)
+
+
+def get_result_model(poll):
+    """
+    :param poll: the poll instance for which results should be stored
+    :return: a SQLAlchemy model with a database column per survey question
+    """
+    survey = JSONSurvey(poll.json_dict)
+    attrs = {k: db.Column(c) for k, c in survey.columns.items()}
+    attrs.update({
+        '__tablename__': 'results_{}'.format(poll.name),
+    })
+
+    return type(
+        'Result{}'.format(poll.name.capitalize()),
+        (db.Model, ResultMixin),
+        attrs
+    )

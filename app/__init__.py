@@ -26,4 +26,5 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
-from app import submit, index, models
+from app import commands
+from app import results, models, polls, surveys
